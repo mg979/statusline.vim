@@ -21,7 +21,7 @@ This plugin takes 0.674s to run that command, in a single window with the file
 
 - lualine.nvim: 1.673s
 - feline.nvim: 1.653s
-- harline.nvim: 4.767s
+- hardline.nvim: 4.767s
 
 Features:
 - branch indicator (needs fugitive)

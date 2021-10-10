@@ -46,24 +46,25 @@ def g:Statusline(current: bool): string
 
     var Color = colors[mode()]
     var Mode = Color .. modes[mode()]
+    var Flags = ''
 
     if &buftype == 'terminal'
         return ' TERMINAL ' .. Bg .. '%f%'
     endif
 
-    Mode ..= &ro         ? Bg .. Color .. 'RO ' : ''
-    Mode ..= &paste      ? Bg .. Color .. 'PASTE ' : ''
-    Mode ..= &spell      ? Bg .. Color .. &spelllang .. ' ' : ''
+    Flags ..= &ro         ? Bg .. Color .. 'RO ' : ''
+    Flags ..= &paste      ? Bg .. Color .. 'PASTE ' : ''
+    Flags ..= &spell      ? Bg .. Color .. &spelllang .. ' ' : ''
 
     if get(g:, 'caps_lock', false)
-        Mode ..= Bg .. Color .. 'CAPS '
+        Flags ..= Bg .. Color .. 'CAPS '
     endif
 
     if insmode[mode()]
-        return Mode .. Bg .. '%f%=' .. &ft .. ' ' .. Color .. ' %l:%c '
+        return Mode .. Flags .. Bg .. '%f%=' .. &ft .. ' ' .. Color .. ' %l:%c '
     endif
 
-    var Mod = &buftype != '' ? Bg .. Insert .. toupper(&buftype) .. ' '
+    Flags ..= &buftype != '' ? Bg .. Insert .. toupper(&buftype) .. ' '
                              : &mod ? Bg .. Insert .. 'MODIFIED ' : ''
 
     var Ldir = haslocaldir() == 1 ? Insert .. 'L ' :
@@ -71,6 +72,7 @@ def g:Statusline(current: bool): string
 
     var Ft = empty(&ft) ? '' : Bg .. &ft
     var Ff = &fileformat == 'unix' ? '' : Bg .. Replace .. &fileformat .. ' '
+    Ff = &fileencoding == 'utf-8' ? Ff : Ff .. Bg .. Replace .. &fileencoding .. ' '
 
     var Git = insmode[mode()] || git.branch == '' ? '' : (git.ok ? Fill : Error) .. git.branch
 
@@ -85,7 +87,7 @@ def g:Statusline(current: bool): string
 
     #=================================================================
 
-    return Mode .. Git .. Mod .. Bg .. ShortBufname() .. '%=' ..
+    return Mode .. Git .. Flags .. Bg .. ShortBufname() .. '%=' ..
            Ldir .. Session() .. Page .. Ft .. Ff .. Ruler .. Warn()
 enddef #}}}
 
@@ -230,7 +232,7 @@ enddef #}}}
 # Section: autocommands
 #==============================================================================
 
-augroup vimrc_statusline
+augroup statusline
     autocmd!
     autocmd WinEnter      *      SetStatusline(true)
     autocmd BufEnter      *      SetStatusline(true)
@@ -243,6 +245,7 @@ augroup vimrc_statusline
     autocmd OptionSet     buf*   SetStatusline(true)
     autocmd VimResized    *      SetStatusline(true)
     autocmd CmdWinEnter   *      setlocal statusline=\ Command\ Line\ %1*
+    autocmd TextChanged,TextChangedI * silent! unlet b:sl_warnings
 augroup END
 
 
@@ -274,7 +277,9 @@ enddef #}}}
 ##
 def Warn(): string
     #{{{1
-    if !&ma || !empty(&bt) || !buflisted(bufnr("%")) || exists('SessionLoad')
+    if exists('b:sl_warnings')
+        return b:sl_warnings
+    elseif !&ma || exists('SessionLoad')
         return ''
     endif
 
@@ -293,17 +298,18 @@ def Warn(): string
 
     if large || trail > 0 || mixed > 0
         if winwidth(0) < 150
-            return Replace .. '! '
+            b:sl_warnings = Replace .. '! '
         else
-            return Replace .. join(
+            b:sl_warnings = Replace .. join(
                 ( large     ? [' Large file '] : [] ) +
                 ( trail > 0 ? [' Trailing space (' .. trail .. ') '] : [] ) +
                 ( mixed > 0 ? [' Mixed indent (' .. mixed .. ') '] : [] ), '|'
             )
         endif
     else
-        return ''
+        b:sl_warnings = ''
     endif
+    return b:sl_warnings
 enddef #}}}
 
 
