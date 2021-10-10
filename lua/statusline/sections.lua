@@ -12,6 +12,10 @@ local search = v.search
 local ok_tws = vim.g.ok_trailing_ws or {'markdown'}
 local no_mix = vim.g.no_mixed_indent or {'vim', 'sh', 'python', 'go'}
 
+vim.cmd([[
+au statusline TextChanged,TextChangedI * silent! unlet b:sl_warnings
+]])
+
 local M = {}
 
 function M.session() -- {{{1
@@ -25,7 +29,9 @@ function M.session() -- {{{1
 end
 
 function M.warnings() -- {{{1
-  if not vim.bo.modifiable or exists('SessionLoad') > 0 then
+  if vim.b.sl_warnings then
+    return vim.b.sl_warnings
+  elseif not vim.bo.modifiable or exists('SessionLoad') > 0 then
     return ''
   end
 
@@ -43,7 +49,7 @@ function M.warnings() -- {{{1
 
   if large or trail > 0 or mixed > 0 then
     if winwidth(0) < 150 then
-      return '%5* ! '
+      vim.b.sl_warnings = '%5* ! '
     else
       local ret = {}
       if large then
@@ -55,11 +61,12 @@ function M.warnings() -- {{{1
       if mixed > 0 then
         ret[#ret + 1] = ' Mixed indent (' .. mixed .. ') '
       end
-      return '%5* ' .. table.concat(ret, '|')
+      vim.b.sl_warnings = '%5* ' .. table.concat(ret, '|')
     end
   else
-    return ''
+    vim.b.sl_warnings = ''
   end
+  return vim.b.sl_warnings
 end
 
 -- }}}
