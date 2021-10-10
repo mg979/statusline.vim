@@ -13,5 +13,6 @@ if has('nvim')
     augroup statusline
         autocmd!
         autocmd VimResized * redrawstatus
+        autocmd CmdWinEnter * setlocal statusline=\ Command\ Line\ %1*
     augroup END
 endif
