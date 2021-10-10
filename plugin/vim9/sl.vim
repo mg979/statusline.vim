@@ -15,81 +15,9 @@ g:loaded_statusline = true
 g:git_infos = {'dir': '', 'branch': '', 'prev_dir': '', 'ok': false}
 var git = g:git_infos
 
-# Window to be ignored, will use default statusline
-var OtherStatusLine = () => &l:statusline !=# '' && &l:statusline !~# '%!Statusline('
-var UseVimDefault = () => !buflisted(bufnr('')) || &buftype != ''
-
 var Path = (p) => has('win32') ? substitute(p, '\\\ze[^ ]', '/', 'g') : p
 var GitDir = () => exists('*FugitiveGitDir') ? substitute(g:FugitiveGitDir(), '.\.git$', '', '') : getcwd()
 #}}}
-
-
-def SetStatusline(current: bool): void
-    # Selector for the statusline function, based on buffer type {{{1
-    if Special() || OtherStatusLine()
-        return
-    elseif UseVimDefault()
-        setlocal statusline=
-    elseif &previewwindow
-        setlocal statusline=\ PREVIEW\ %1*\ %f%=%0*\ %4l:%-4c
-    else
-        exe 'setlocal statusline=%!Statusline(v:' .. string(current) .. ')'
-    endif
-enddef #}}}
-
-
-def g:Statusline(current: bool): string
-    # Statusline for handled windows {{{1
-    if !current
-        return '%#StatuslineNC# %f %m%r%= %p%% ｜ %l:%c '
-    endif
-
-    var Color = colors[mode()]
-    var Mode = Color .. modes[mode()]
-    var Flags = ''
-
-    if &buftype == 'terminal'
-        return ' TERMINAL ' .. Bg .. '%f%'
-    endif
-
-    Flags ..= &ro         ? Bg .. Color .. 'RO ' : ''
-    Flags ..= &paste      ? Bg .. Color .. 'PASTE ' : ''
-    Flags ..= &spell      ? Bg .. Color .. &spelllang .. ' ' : ''
-
-    if get(g:, 'caps_lock', false)
-        Flags ..= Bg .. Color .. 'CAPS '
-    endif
-
-    if insmode[mode()]
-        return Mode .. Flags .. Bg .. '%f%=' .. &ft .. ' ' .. Color .. ' %l:%c '
-    endif
-
-    Flags ..= &buftype != '' ? Bg .. Insert .. toupper(&buftype) .. ' '
-                             : &mod ? Bg .. Insert .. 'MODIFIED ' : ''
-
-    var Ldir = haslocaldir() == 1 ? Insert .. 'L ' :
-               haslocaldir() == 2 ? Insert .. 'T ' : ''
-
-    var Ft = empty(&ft) ? '' : Bg .. &ft
-    var Ff = &fileformat == 'unix' ? '' : Bg .. Replace .. &fileformat .. ' '
-    Ff = &fileencoding == 'utf-8' ? Ff : Ff .. Bg .. Replace .. &fileencoding .. ' '
-
-    var Git = insmode[mode()] || git.branch == '' ? '' : (git.ok ? Fill : Error) .. git.branch
-
-    # page current/max
-    var Page  = Color .. printf("%s/%s ",
-                                line('.') / winheight(0) + 1,
-                                line('$') / winheight(0) + 1)
-
-    # ruler, with padding left and right
-    var n = strlen(line('$'))
-    var Ruler = Bg .. Color .. printf('%%%s.%sl:%%-3c ', n, n)
-
-    #=================================================================
-
-    return Mode .. Git .. Flags .. Bg .. ShortBufname() .. '%=' ..
-           Ldir .. Session() .. Page .. Ft .. Ff .. Ruler .. Warn()
-enddef #}}}
 
 
 #==============================================================================
@@ -155,15 +83,81 @@ var insmode = {
 
 
 
+var Unlisted = () => ' UNLISTED %1* %f%=%0* %4l:%-4c'
+var Scratch  = (s) => ' ' .. toupper(s) .. ' ' .. Bg .. '%f%'
+var Preview  = () => ' PREVIEW %1* %f%=%0* %4l:%-4c'
+var Inactive = () => '%#StatuslineNC# %f %m%r%= %p%% ｜ %l:%c '
+
+def Active(): string
+    # Statusline for handled windows {{{1
+    var Color = colors[mode()]
+    var Mode = Color .. modes[mode()]
+    var Flags = ''
+
+    Flags ..= &ro         ? Bg .. Color .. 'RO ' : ''
+    Flags ..= &paste      ? Bg .. Color .. 'PASTE ' : ''
+    Flags ..= &spell      ? Bg .. Color .. &spelllang .. ' ' : ''
+
+    if get(g:, 'caps_lock', false)
+        Flags ..= Bg .. Color .. 'CAPS '
+    endif
+
+    if insmode[mode()]
+        return Mode .. Flags .. Bg .. '%f%=' .. &ft .. ' ' .. Color .. ' %l:%c '
+    endif
+
+    Flags ..= &buftype != '' ? Bg .. Insert .. toupper(&buftype) .. ' '
+                             : &mod ? Bg .. Insert .. 'MODIFIED ' : ''
+
+    var Ldir = haslocaldir() == 1 ? Insert .. 'L ' :
+               haslocaldir() == 2 ? Insert .. 'T ' : ''
+
+    var Ft = empty(&ft) ? '' : Bg .. &ft
+    var Ff = &fileformat == 'unix' ? '' : Bg .. Replace .. &fileformat .. ' '
+    Ff = &fileencoding == 'utf-8' ? Ff : Ff .. Bg .. Replace .. &fileencoding .. ' '
+
+    var Git = insmode[mode()] || git.branch == '' ? '' : (git.ok ? Fill : Error) .. git.branch
+
+    # page current/max
+    var Page  = Color .. printf("%s/%s ",
+                                line('.') / winheight(0) + 1,
+                                line('$') / winheight(0) + 1)
+
+    # ruler, with padding left and right
+    var n = strlen(line('$'))
+    var Ruler = Bg .. Color .. printf('%%%s.%sl:%%-3c ', n, n)
+
+    #=================================================================
+
+    return Mode .. Git .. Flags .. Bg .. ShortBufname() .. '%=' ..
+           Ldir .. Session() .. Page .. Ft .. Ff .. Ruler .. Warn()
+enddef #}}}
+
+
+def g:Statusline(): string
+    # Selector for the statusline function, based on buffer type {{{1
+    var w = g:statusline_winid
+    var custom = SpecialBufname(w) ?? SpecialFiletype(w)
+    if custom != ''
+        return custom
+    elseif !getwinvar(w, '&buflisted')
+        return Unlisted()
+    elseif getwinvar(w, '&buftype') != ''
+        return Scratch(getwinvar(w, '&buftype'))
+    elseif getwinvar(w, '&previewwindow')
+        return Preview()
+    elseif w != win_getid()
+        return Inactive()
+    else
+        return Active()
+    endif
+enddef #}}}
+
+
+
 #==============================================================================
 # Section: special buffers
 #==============================================================================
-
-def Special(): bool
-    # Statusline for special buffers {{{1
-    return SpecialBufname() || SpecialFiletype()
-enddef #}}}
-
 
 var special_bufnames = {
     '^fugitive:': () => {
@@ -183,35 +177,31 @@ var special_filetypes = {
     }
 
 
-def SpecialBufname(): bool #{{{1
+def SpecialBufname(w: number): string #{{{1
     for b in keys(special_bufnames)
-        if @% =~ b
+        if bufname(winbufnr(w)) =~ b
             var sl = special_bufnames[b]()
             if sl != ''
-                var str = sl .. Bg .. '%=' .. Fill .. ' %l:%c '
-                setwinvar(winnr(), '&statusline', str)
-                return true
+                return sl .. Bg .. '%=' .. Fill .. ' %l:%c '
             endif
             break
         endif
     endfor
-    return false
+    return ''
 enddef
 
 
-def SpecialFiletype(): bool #{{{1
+def SpecialFiletype(w: number): string #{{{1
     for ft in keys(special_filetypes)
-        if &ft == ft
+        if getwinvar(w, '&ft') == ft
             var sl = special_filetypes[ft]()
             if sl != ''
-                var str = sl .. Bg .. '%=' .. Fill .. ' %l:%c '
-                setwinvar(winnr(), '&statusline', str)
-                return true
+                return sl .. Bg .. '%=' .. Fill .. ' %l:%c '
             endif
             break
         endif
     endfor
-    return false
+    return ''
 enddef
 
 
@@ -232,18 +222,11 @@ enddef #}}}
 # Section: autocommands
 #==============================================================================
 
+set statusline=%!Statusline()
+
 augroup statusline
     autocmd!
-    autocmd WinEnter      *      SetStatusline(true)
-    autocmd BufEnter      *      SetStatusline(true)
-    autocmd CursorHold    *      SetStatusline(true)
-    autocmd WinNew        *      SetStatusline(true)
-    autocmd FileType      *      SetStatusline(true)
-    autocmd WinLeave      *      SetStatusline(false)
-    autocmd BufFilePost   *      SetStatusline(true)
-    autocmd BufWritePost  *      SetStatusline(true)
-    autocmd OptionSet     buf*   SetStatusline(true)
-    autocmd VimResized    *      SetStatusline(true)
+    autocmd VimResized    *      redrawstatus
     autocmd CmdWinEnter   *      setlocal statusline=\ Command\ Line\ %1*
     autocmd TextChanged,TextChangedI * silent! unlet b:sl_warnings
 augroup END
