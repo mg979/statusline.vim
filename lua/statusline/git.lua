@@ -3,6 +3,10 @@
 --------------------------------------------------------------------------------
 
 local v = vim.fn
+local exists = v.exists
+local substitute = v.substitute
+local fnamemodify = v.fnamemodify
+local getcwd = v.getcwd
 
 local Path = v.has('win32') > 0 and function(p) return v.tr(p, '\\', '/') end
              or function(p) return p end
@@ -30,7 +34,7 @@ local git = {['branch'] = '', ['ok'] = false}
 ----
 function git.info()
 
-    if v.exists('g:loaded_fugitive') == 0 or v.exists('g:SessionLoad') > 0 then
+    if exists('g:loaded_fugitive') == 0 or exists('g:SessionLoad') > 0 then
         return
     end
 
@@ -42,13 +46,13 @@ function git.info()
     end
 
     git.branch = string.format(' %s ', sha)
-    git.ok = Path(v.getcwd()) == Path(git.dir())
+    git.ok = Path(getcwd()) == Path(git.dir())
 end
 
 function git.dir()
-  return v.exists('*FugitiveGitDir')
-        and v.substitute(v.FugitiveGitDir(), '.\\.git$', '', '')
-        or v.getcwd()
+  return exists('*FugitiveGitDir')
+        and substitute(v.FugitiveGitDir(), '.\\.git$', '', '')
+        or getcwd()
 end
 
 return git

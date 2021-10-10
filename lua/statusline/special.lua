@@ -11,6 +11,7 @@ local v = vim.fn
 local getreg = v.getreg
 local substitute = v.substitute
 local expand = v.expand
+local fnamemodify = v.fnamemodify
 
 local special_bufnames = {  -- {{{1
   ['fugitive'] = {
@@ -23,7 +24,7 @@ local special_bufnames = {  -- {{{1
 
 local special_filetypes = { -- {{{1
   ['gitcommit'] = function() return ' Commit ' .. Bg .. git.dir() end,
-  ['fugitive'] =  function() return ' Git Status ' .. Bg .. git.dir() end,
+  ['fugitive'] =  function() return ' Git Status ' .. Bg .. fnamemodify(git.dir(), ':~') end,
   ['startify'] =  function() return ' Startify ' end,
   ['netrw'] =     function() return ' Netrw ' .. expand('%:t') end,
   ['dirvish'] =   function() return ' Dirvish ' .. Bg .. expand('%:~') end,
