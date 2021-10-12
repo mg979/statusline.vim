@@ -206,15 +206,16 @@ enddef
 
 
 def ShortBufname(): string #{{{1
-    if strlen(@%) < winwidth(0) / 2
+    if strlen(@%) < winwidth(0) / 2 || @% !~ '/'
         return @%
     endif
-    var path = substitute(@%, '/\([^/]\)[^/]*', '/\1', 'g')
+    var path = substitute(@%, '\v%((\.?[^/])[^/]*)?/(\.?[^/])[^/]*', '\1/\2', 'g')
     path = path[ : -2] .. fnamemodify(@%, ':t')
     if strlen(path) < winwidth(0) / 2
         return path
     endif
-    return '...' .. fnamemodify(@%, ':t')[ -(winwidth(0) / 2) : ]
+    path = fnamemodify(@%, ':p')
+    return '...' .. strpart(path, len(path) - winwidth(0) / 3)
 enddef #}}}
 
 

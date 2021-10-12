@@ -48,6 +48,8 @@ local localdir = v.haslocaldir
 local line = v.line
 local winheight = v.winheight
 
+local strsub = string.sub
+local strfind = string.find
 --}}}
 
 --------------------------------------------------------------------------------
@@ -55,15 +57,16 @@ local winheight = v.winheight
 --------------------------------------------------------------------------------
 
 local function ShortBufname(name) -- {{{1
-  if #name < winwidth(0) / 2 then
+  if #name < winwidth(0) / 2 or not strfind(name, '/') then
     return name
   end
-  local path = substitute(name, '/\\([^/]\\)[^/]*', '/\\1', 'g')
-  path = string.sub(path, 1, #path - 1) .. fnamemodify(name, ':t')
+  local path = substitute(name, '\\v%((\\.?[^/])[^/]*)?/(\\.?[^/])[^/]*', '\\1/\\2', 'g')
+  path = strsub(path, 1, #path - 1) .. fnamemodify(name, ':t')
   if #path < winwidth(0) / 2 then
     return path
   end
-  return '...' .. string.sub(fnamemodify(name, ':t'), winwidth(0) / 2)
+  name = fnamemodify(name, ':p')
+  return '...' .. strsub(name, #name - winwidth(0) / 3)
 end
 
 -- }}}
