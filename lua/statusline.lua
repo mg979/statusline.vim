@@ -97,7 +97,7 @@ local function active()
   local Ft = o.filetype == '' and '' or Bg .. o.filetype
 
   local Ff = o.fileformat == 'unix' and '' or Bg .. Replace .. o.fileformat .. ' '
-  local Ff = o.fileencoding == 'utf-8' and Ff or Ff .. Bg .. Replace .. o.fileencoding .. ' '
+  local Ff = (o.fileencoding == '' or o.fileencoding == 'utf-8') and Ff or Ff .. Bg .. Replace .. o.fileencoding .. ' '
 
   local Git = git.branch == '' and '' or (git.ok and Fill or Error) .. git.branch
 

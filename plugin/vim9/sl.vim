@@ -114,7 +114,7 @@ def Active(): string
 
     var Ft = empty(&ft) ? '' : Bg .. &ft
     var Ff = &fileformat == 'unix' ? '' : Bg .. Replace .. &fileformat .. ' '
-    Ff = &fileencoding == 'utf-8' ? Ff : Ff .. Bg .. Replace .. &fileencoding .. ' '
+    Ff = (&fileencoding == 'utf-8' || &fileencoding == '') ? Ff : Ff .. Bg .. Replace .. &fileencoding .. ' '
 
     var Git = insmode[mode()] || git.branch == '' ? '' : (git.ok ? Fill : Error) .. git.branch
 

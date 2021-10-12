@@ -9,6 +9,8 @@ local exists = v.exists
 local getcwd = v.getcwd
 local search = v.search
 
+local Bg      = '%1* '
+
 local ok_tws = vim.g.ok_trailing_ws or {'markdown'}
 local no_mix = vim.g.no_mixed_indent or {'vim', 'sh', 'python', 'go'}
 
