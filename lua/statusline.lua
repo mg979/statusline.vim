@@ -94,8 +94,8 @@ local function active()
 
   Flags = vim.bo.modified and Flags .. Bg .. Insert .. 'MODIFIED ' or Flags
 
-  local Ldir = localdir() == 1 and Insert .. 'L ' or
-               localdir() == 2 and Insert .. 'T ' or ''
+  local Ldir = localdir() == 1      and Insert .. 'L ' or
+               localdir(-1, 0) == 1 and Insert .. 'T ' or ''
 
   local Ft = o.filetype == '' and '' or Bg .. o.filetype
 
