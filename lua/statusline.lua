@@ -48,25 +48,33 @@ local localdir = v.haslocaldir
 local line = v.line
 local winheight = v.winheight
 
+local pathpat = vim.fn.has('win32') == 1 and '([/\\]?%.?[^/\\])[^/\\]-[/\\]'
+                                         or '(/?%.?[^/])[^/]-/'
+
+local slash = vim.fn.has('win32') == 1 and '[/\\]' or '/'
+local slashchar = vim.fn.has('win32') == 1 and '\\' or '/'
+
 local strsub = string.sub
 local strfind = string.find
+local gsub = string.gsub
+
+local strwidth = vim.api.nvim_strwidth
+local function width(s) s = gsub(s, '%%#?%w+#?%*?', '') return strwidth(s) end
 --}}}
 
 --------------------------------------------------------------------------------
 -- Section: local functions
 --------------------------------------------------------------------------------
 
-local function ShortBufname(name) -- {{{1
-  if #name < winwidth(0) / 2 or not strfind(name, '/') then
+local function ShortBufname(name, limit) -- {{{1
+  if #name < limit or not strfind(name, slash) then
     return name
   end
-  local path = substitute(name, '\\v%((\\.?[^/])[^/]*)?/(\\.?[^/])[^/]*', '\\1/\\2', 'g')
-  path = strsub(path, 1, #path - 1) .. fnamemodify(name, ':t')
-  if #path < winwidth(0) / 2 then
+  local path = gsub(name, pathpat, '%1' .. slashchar)
+  if #path < limit then
     return path
   end
-  name = fnamemodify(name, ':p')
-  return '...' .. strsub(name, #name - winwidth(0) / 3)
+  return gsub(name, '.*' .. slashchar, '')
 end
 
 -- }}}
@@ -113,8 +121,10 @@ local function active()
   local n = #tostring(line('$'))
   local Ruler = Bg .. Color .. string.format('%%%s.%sl:%%-3c ', n, n)
 
-  return Mode .. Git .. Flags .. Bg .. ShortBufname(getreg('%')) .. '%=' ..
-         Ldir .. session() .. Page .. Ft .. Ff .. Ruler .. warnings()
+  local left = Mode .. Git .. Flags .. Bg
+  local right = Ldir .. session() .. Page .. Ft .. Ruler .. warnings()
+  local bname = ShortBufname(getreg('%'), winwidth(0) - width(left) - width(right))
+  return left .. bname .. '%=' .. right
 end
 
 local unlisted = function() return ' UNLISTED %1* %f%=%0* %4l:%-4c' end
