@@ -128,7 +128,7 @@ local function active()
 end
 
 local unlisted = function() return ' UNLISTED %1* %f%=%0* %4l:%-4c' end
-local scratch  = function() return ' ' .. string.upper(v.getwinvar(w, '&buftype')) .. ' ' .. Bg .. '%f%' end
+local scratch  = function() return ' ' .. string.upper(v.getwinvar(w, '&buftype')) .. ' ' .. Bg .. '%f' end
 local preview  = function() return ' PREVIEW %1* %f%=%0* %4l:%-4c' end
 local inactive = function() return '%#StatuslineNC# %f %m%r%= %p%% ｜ %l:%c ' end
 
