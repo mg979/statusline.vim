@@ -41,8 +41,6 @@ local v = vim.fn
 local o = vim.o
 local mode = v.mode
 local getreg = v.getreg
-local substitute = v.substitute
-local fnamemodify = v.fnamemodify
 local winwidth = v.winwidth
 local localdir = v.haslocaldir
 local line = v.line
@@ -54,7 +52,6 @@ local pathpat = vim.fn.has('win32') == 1 and '([/\\]?%.?[^/\\])[^/\\]-[/\\]'
 local slash = vim.fn.has('win32') == 1 and '[/\\]' or '/'
 local slashchar = vim.fn.has('win32') == 1 and '\\' or '/'
 
-local strsub = string.sub
 local strfind = string.find
 local gsub = string.gsub
 
@@ -86,13 +83,13 @@ end
 
 local function active()
   local Color, InsMode, Mode = unpack(modes[mode()])
-  local Mode = Color .. Mode
+  Mode = Color .. Mode
 
   Flags = o.readonly and Bg .. Color .. 'RO ' or ''
   Flags = o.paste and Flags .. Bg .. Color .. 'PASTE ' or Flags
   Flags = o.spell and Flags .. Bg .. Color .. o.spelllang .. ' ' or Flags
 
-  if vim.g.caps_lock then
+  if vim.g.caps_lock == true then
     Flags = Flags .. Bg .. Color .. 'CAPS '
   end
 
@@ -108,7 +105,7 @@ local function active()
   local Ft = o.filetype == '' and '' or Bg .. o.filetype
 
   local Ff = o.fileformat == 'unix' and '' or Bg .. Replace .. o.fileformat .. ' '
-  local Ff = (o.fileencoding == '' or o.fileencoding == 'utf-8') and Ff or Ff .. Bg .. Replace .. o.fileencoding .. ' '
+  Ff = (o.fileencoding == '' or o.fileencoding == 'utf-8') and Ff or Ff .. Bg .. Replace .. o.fileencoding .. ' '
 
   local Git = git.branch == '' and '' or (git.ok and Fill or Error) .. git.branch
 
@@ -128,7 +125,7 @@ local function active()
 end
 
 local unlisted = function() return ' UNLISTED %1* %f%=%0* %4l:%-4c' end
-local scratch  = function() return ' ' .. string.upper(v.getwinvar(w, '&buftype')) .. ' ' .. Bg .. '%f' end
+local scratch  = function() return ' ' .. string.upper(v.getwinvar(0, '&buftype')) .. ' ' .. Bg .. '%f' end
 local preview  = function() return ' PREVIEW %1* %f%=%0* %4l:%-4c' end
 local inactive = function() return '%#StatuslineNC# %f %m%r%= %p%% ｜ %l:%c ' end
 

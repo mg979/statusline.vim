@@ -5,7 +5,6 @@
 local v = vim.fn
 local exists = v.exists
 local substitute = v.substitute
-local fnamemodify = v.fnamemodify
 local getcwd = v.getcwd
 
 local Path = v.has('win32') > 0 and function(p) return v.tr(p, '\\', '/') end

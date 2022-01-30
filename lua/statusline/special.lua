@@ -35,7 +35,7 @@ local special_filetypes = { -- {{{1
 
 local function SpecialBufname() -- {{{1
   local sl
-  for key, value in pairs(special_bufnames) do
+  for _, value in pairs(special_bufnames) do
     if value[1]() then
       sl = value[2]()
       if sl ~= '' then

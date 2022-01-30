@@ -1,12 +1,8 @@
 local v = vim.fn
 local getreg = v.getreg
-local substitute = v.substitute
 local fnamemodify = v.fnamemodify
 local winwidth = v.winwidth
-local buflisted = v.buflisted
-local bufnr = v.bufnr
 local exists = v.exists
-local getcwd = v.getcwd
 local search = v.search
 
 local Bg      = '%1* '
@@ -15,7 +11,7 @@ local ok_tws = vim.g.ok_trailing_ws or {'markdown'}
 local no_mix = vim.g.no_mixed_indent or {'vim', 'sh', 'python', 'go'}
 
 vim.cmd([[
-au statusline TextChanged,TextChangedI * silent! unlet b:sl_warnings
+au statusline TextChanged,TextChangedI,CursorHold * silent! unlet b:sl_warnings
 ]])
 
 local M = {}
