@@ -40,7 +40,7 @@ local special = require"statusline.special"
 local v = vim.fn
 local o = vim.o
 local mode = v.mode
-local getreg = v.getreg
+local expand = v.expand
 local winwidth = v.winwidth
 local localdir = v.haslocaldir
 local line = v.line
@@ -119,8 +119,8 @@ local function active()
   local Ruler = Bg .. Color .. string.format('%%%s.%sl:%%-3c ', n, n)
 
   local left = Mode .. Git .. Flags .. Bg
-  local right = Ldir .. session() .. Page .. Ft .. Ruler .. warnings()
-  local bname = ShortBufname(getreg('%'), winwidth(0) - width(left) - width(right))
+  local right = Ldir .. session() .. Page .. Ff .. Ft .. Ruler .. warnings()
+  local bname = ShortBufname(expand('%:~'), winwidth(0) - width(left) - width(right))
   return left .. bname .. '%=' .. right
 end
 

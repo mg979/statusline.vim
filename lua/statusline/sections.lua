@@ -11,7 +11,7 @@ local ok_tws = vim.g.ok_trailing_ws or {'markdown'}
 local no_mix = vim.g.no_mixed_indent or {'vim', 'sh', 'python', 'go'}
 
 vim.cmd([[
-au statusline TextChanged,TextChangedI,CursorHold * silent! unlet b:sl_warnings
+au statusline TextChanged,TextChangedI,CursorHold * unlet! b:sl_warnings
 ]])
 
 local M = {}

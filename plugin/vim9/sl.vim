@@ -229,7 +229,7 @@ augroup statusline
     autocmd!
     autocmd VimResized    *      redrawstatus
     autocmd CmdWinEnter   *      setlocal statusline=\ Command\ Line\ %1*
-    autocmd TextChanged,TextChangedI * silent! unlet b:sl_warnings
+    autocmd TextChanged,TextChangedI * unlet! b:sl_warnings
 augroup END
 
 
